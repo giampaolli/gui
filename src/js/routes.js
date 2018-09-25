@@ -3,7 +3,7 @@ import {
     Router, Route, IndexRoute, hashHistory,
 } from 'react-router';
 import Full from './containers/full';
-import { Devices, ViewDevice, NewDevice } from './views/devices';
+import { Devices, ViewDevice, NewDevice } from './views/devicesRefactor';
 import { TemplateList, NewTemplate } from './views/templates';
 import Users from './views/users';
 import { Flows, EditFlow } from './views/flows';

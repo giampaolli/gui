@@ -1,6 +1,5 @@
 /* eslint guard-for-in: 0 */
-/* eslint no-restricted-syntax: ["error", "WithStatement",
-    "BinaryExpression[operator='in']"] */
+/* eslint no-restricted-syntax: ["error", "WithStatement"] */
 /* eslint no-param-reassign: ["error"] */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
@@ -10,6 +9,7 @@ import { SmallPositionRenderer } from '../../../utils/Maps';
 import { Loading } from '../../../../components/Loading';
 import TrackingActions from '../../../../actions/TrackingActions';
 import DeviceMapBig from './DeviceMapBig';
+import DevFilterFields from './DevFilterFields';
 
 class DeviceMap extends Component {
     constructor(props) {
@@ -129,7 +129,7 @@ class DeviceMap extends Component {
 
     toggleTracking(deviceId) {
         const { Measure, devices } = this.props;
-        if (!Measure.tracking.hasOwnProperty(deviceId)) {
+        if (!Object.prototype.hasOwnProperty.call(Measure.tracking, deviceId)) {
             for (const k in devices[deviceId].attrs) {
                 for (const j in devices[deviceId].attrs[k]) {
                     if (devices[deviceId].attrs[k][j].value_type === 'geo:point') {
@@ -146,7 +146,7 @@ class DeviceMap extends Component {
 
     showSelected(device) {
         const { selectedDevice } = this.state;
-        if (selectedDevice.hasOwnProperty(device)) {
+        if (Object.prototype.hasOwnProperty.call(selectedDevice, device)) {
             return selectedDevice[device];
         }
         return false;
@@ -187,9 +187,8 @@ class DeviceMap extends Component {
         const {
             devices,
             Measure,
-            dev_opex,
+            devOpex,
             showFilter,
-            DevFilterFields,
         } = this.props;
 
         const { displayMap, mapquest } = this.state;
@@ -202,8 +201,9 @@ class DeviceMap extends Component {
         let pointList = [];
         for (const k in filteredList) {
             const device = filteredList[k];
-            device.hasPosition = device.hasOwnProperty('position');
-            if (Measure.tracking.hasOwnProperty(device.id) && displayMap[device.id]) {
+            device.hasPosition = Object.prototype.hasOwnProperty.call(device, 'position');
+            if (Object.prototype.hasOwnProperty.call(Measure.tracking, device.id)
+                    && displayMap[device.id]) {
                 pointList = pointList.concat(Measure.tracking[device.id].map(
                     (e, idx) => {
                         const updated = e;
@@ -219,7 +219,7 @@ class DeviceMap extends Component {
         }
 
         this.metaData = { alias: 'device' };
-        dev_opex.setFilterToMap();
+        devOpex.setFilterToMap();
 
         // console.log('this.pointList', this.pointList);
         // console.log('displayDevicesCount', displayDevicesCount);
@@ -234,7 +234,7 @@ class DeviceMap extends Component {
                         <Filter
                             showPainel={showFilter}
                             metaData={this.metaData}
-                            ops={dev_opex}
+                            ops={devOpex}
                             fields={DevFilterFields}
                         />
                     </div>
@@ -255,12 +255,25 @@ class DeviceMap extends Component {
     }
 }
 
+DeviceMap.defautProps = {
+    showFilter: false,
+};
+
 DeviceMap.propTypes = {
     devices: PropTypes.array.isRequired,
     Measure: PropTypes.object.isRequired,
-    dev_opex: PropTypes.object.isRequired,
+    devOpex: PropTypes.objectOf(PropTypes.shape({
+        whenUpdatePagination: PropTypes.func.isRequired,
+        setDefaultFilter: PropTypes.func.isRequired,
+        setFilterToMap: PropTypes.func.isRequired,
+        whenUpdateFilter: PropTypes.func.isRequired,
+        _fetch: PropTypes.func.isRequired,
+        setDefaultPageNumber: PropTypes.func.isRequired,
+        setDefaultPaginationParams: PropTypes.func.isRequired,
+        hasFilter: PropTypes.func.isRequired,
+        getCurrentQuery: PropTypes.func.isRequired,
+    })).isRequired,
     showFilter: PropTypes.bool.isRequired,
-    DevFilterFields: PropTypes.object.isRequired,
     Config: PropTypes.object.isRequired,
 };
 

@@ -1,6 +1,6 @@
-var alt = require('../alt');
-var ConfigActions = require('../actions/ConfigActions');
- class ConfigStore {
+const alt = require('../alt');
+const ConfigActions = require('../actions/ConfigActions');
+class ConfigStore {
     constructor() {
         this.error = null;
         this.itemsPerPage = [];
@@ -13,15 +13,17 @@ var ConfigActions = require('../actions/ConfigActions');
         this.mapColorActive = false;
         this.tileSelect = '';
         this.mapObj = [];
-         this.bindListeners({
+        this.bindListeners({
             handleFetchConfigList: ConfigActions.FETCH_CURRENT_CONFIG,
-            handleUpdateConfigList: ConfigActions.INSERT_CURRENT_ALARMS
+            handleUpdateConfigList: ConfigActions.INSERT_CURRENT_ALARMS,
         });
     }
-     handleFetchConfigList() {
+
+    handleFetchConfigList() {
         this.error = '';
     }
-     handleUpdateConfigList(configList) {
+
+    handleUpdateConfigList(configList) {
         console.log(configList);
         this.mapImage = configList.mapImage;
         this.measureAttribute = configList.measureAttribute;
@@ -33,17 +35,17 @@ var ConfigActions = require('../actions/ConfigActions');
         this.mapColorActive = configList.mapColorActive;
         for (let index in this.mapImage) {
             this.mapObj.push({
-                'id':this.mapImage[index].id,
+                'id': this.mapImage[index].id,
                 'MAP_HAS_OVERLAY_ENV': "false",
                 'description': this.mapImage[index].description,
                 'overlay_data': {
-                    'path' : this.mapImage[index].image_path,
-                    'corner1' : this.mapImage[index].mapCoordinates.initial,
-                    'corner2':this.mapImage[index].mapCoordinates.final
+                    'path': this.mapImage[index].image_path,
+                    'corner1': this.mapImage[index].mapCoordinates.initial,
+                    'corner2': this.mapImage[index].mapCoordinates.final
                 }
             })
         }
     }
- }
- var _store = alt.createStore(ConfigStore, 'ConfigStore');
+}
+const _store = alt.createStore(ConfigStore, 'ConfigStore');
 export default _store;

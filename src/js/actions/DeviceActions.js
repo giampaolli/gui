@@ -1,10 +1,17 @@
-/* eslint-disable */
 import deviceManager from '../comms/devices/DeviceManager';
 import toaster from '../comms/util/materialize';
 
 const alt = require('../alt');
 
 class DeviceActions {
+    constructor() {
+        this.device = {};
+        this.deviceId = '';
+        this.devices = [];
+        this.list = [];
+        this.error = '';
+    }
+
     fetchDevices(params = null, cb) {
         return (dispatch) => {
             dispatch();
@@ -60,10 +67,12 @@ class DeviceActions {
     }
 
     updateDevices(list) {
+        this.list = list;
         return list;
     }
 
     insertDevice(devices) {
+        this.devices = devices;
         return devices;
     }
 
@@ -90,7 +99,7 @@ class DeviceActions {
             dispatch();
             deviceManager
                 .setDevice(device)
-                .then((response) => {
+                .then(() => {
                     this.updateSingle(device);
                     if (cb) {
                         cb(device);
@@ -103,10 +112,12 @@ class DeviceActions {
     }
 
     updateSingle(device) {
+        this.device = device;
         return device;
     }
 
     updateStatus(device) {
+        this.device = device;
         return device;
     }
 
@@ -120,17 +131,19 @@ class DeviceActions {
                         cb(response);
                     }
                 })
-                .catch((error) => {
+                .catch(() => {
                     this.devicesFailed('Failed to remove given device');
                 });
         };
     }
 
-    removeSingle(device_id) {
-        return device_id;
+    removeSingle(deviceId) {
+        this.deviceId = deviceId;
+        return deviceId;
     }
 
     devicesFailed(error) {
+        this.error = error;
         toaster.error(error.message);
         return error;
     }
