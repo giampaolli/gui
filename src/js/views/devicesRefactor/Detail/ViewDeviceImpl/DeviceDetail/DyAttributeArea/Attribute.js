@@ -1,8 +1,6 @@
-/* global window */
-/* global document */
-/* eslint jsx-a11y/label-has-associated-control: 0 */
+/* eslint-disable */
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 import AttrHistory from './AttrHistory';
 
 class Attribute extends Component {
@@ -14,59 +12,43 @@ class Attribute extends Component {
         this.toogleExpand = this.toogleExpand.bind(this);
     }
 
+    componentDidMount() {
+    //  MeasureActions.fetchMeasure(this.props.device, this.props.device.id, this.props.device.templates, this.props.attr.id, 250);
+    }
+
     toogleExpand(state) {
         this.setState({ opened: state });
     }
 
     render() {
-        // check the current window, if less then 1024px, blocks compressed state
-        let { opened } = this.state;
-        const { attr, device } = this.props;
+    // check the current window, if less then 1024px, blocks compressed state
         const width = window.innerWidth
-            || document.documentElement.clientWidth
-            || document.body.clientWidth;
-
+      || document.documentElement.clientWidth
+      || document.body.clientWidth;
+        let opened = this.state.opened;
         if (width < 1168) opened = true;
+
         return (
             <div className={`attributeBox ${opened ? 'expanded' : 'compressed'}`}>
                 <div className="header">
-                    <label>{attr.label}</label>
-                    {!opened
-                        ? (
-                            <i
-                                role="button"
-                                tabIndex="0"
-                                onKeyPress={this.toogleExpand.bind(this, true)}
-                                onClick={this.toogleExpand.bind(this, true)}
-                                className="fa fa-expand"
-                            />
-                        )
-                        : (
-                            <i
-                                role="button"
-                                tabIndex="0"
-                                onKeyPress={this.toogleExpand.bind(this, true)}
-                                onClick={this.toogleExpand.bind(this, false)}
-                                className="fa fa-compress"
-                            />
-                        )
-                    }
+                    <label>{this.props.attr.label}</label>
+                    {!opened ? <i onClick={this.toogleExpand.bind(this, true)} className="fa fa-expand" /> : <i onClick={this.toogleExpand.bind(this, false)} className="fa fa-compress" />}
                 </div>
 
                 {/* <AttributeBox attrs={this.state.selected_attributes} /> */}
                 <div className="details-card-content">
-                    <AttrHistory device={device} type={attr.value_type} attr={attr.label} />
+                    <AttrHistory device={this.props.device} type={this.props.attr.value_type} attr={this.props.attr.label} />
                 </div>
             </div>
         );
     }
 }
 
-Attribute.propTypes = {
-    device: PropTypes.objectOf(PropTypes.shape({
-        id: PropTypes.string,
-    })).isRequired,
-    attr: PropTypes.array.isRequired,
-};
+// Attribute.propTypes = {
+//     device: PropTypes.objectOf(PropTypes.shape({
+//         id: PropTypes.string,
+//     })).isRequired,
+//     attr: PropTypes.array.isRequired,
+// };
 
 export default Attribute;

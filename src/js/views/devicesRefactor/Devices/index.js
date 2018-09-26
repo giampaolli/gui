@@ -1,66 +1,19 @@
-/* global window */
-/* eslint global-require : 0 */
-/* eslint no-underscore-dangle: 0 */
-/* eslint guard-for-in: 0 */
-/* eslint no-restricted-syntax: ["error", "WithStatement"] */
+/* eslint-disable */
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 import AltContainer from 'alt-container';
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import Toggle from 'material-ui/Toggle';
 import DeviceStore from '../../../stores/DeviceStore';
 import DeviceActions from '../../../actions/DeviceActions';
 import MeasureActions from '../../../actions/MeasureActions';
 import { NewPageHeader } from '../../../containers/full/PageHeader';
-import { DojotBtnLink } from '../../../components/DojotButton';
 import util from '../../../comms/util';
-import DeviceCardList from './DeviceCard';
-import MapWrapper from './MapWrapper';
 import {
     Pagination, FilterLabel, GenericOperations,
 } from '../../utils/Manipulation';
-
-
-// UI elements
-function ToggleWidget({ toggleState, toggle }) {
-    function checkAndToggle(currentState) {
-        if (toggleState === currentState) toggle();
-    }
-
-    return (
-        <div className="box-sh">
-            <div
-                role="button"
-                tabIndex="0"
-                className="toggle-icon"
-                onClick={checkAndToggle.bind(this, true)}
-                onKeyPress={checkAndToggle.bind(this, true)}
-            >
-                <img src="images/icons/pin.png" alt="pin" />
-            </div>
-            <div className="toggle-map">
-                <MuiThemeProvider>
-                    <Toggle label="" defaultToggled={toggleState} onToggle={toggle} />
-                </MuiThemeProvider>
-            </div>
-            <div
-                role="button"
-                tabIndex="0"
-                className="toggle-icon"
-                onClick={checkAndToggle.bind(this, false)}
-                onKeyPress={checkAndToggle.bind(this, false)}
-            >
-                <i className="fa fa-th-large" aria-hidden="true" />
-            </div>
-        </div>
-    );
-}
-
-ToggleWidget.propTypes = {
-    toggleState: PropTypes.bool.isRequired,
-    toggle: PropTypes.func.isRequired,
-};
-
+import DeviceCardList from './DeviceCard';
+import MapWrapper from './MapWrapper';
+import ToggleWidget from './ToggleWidget';
+import OperationsHeader from './OperationsHeader';
 
 class DeviceOperations extends GenericOperations {
     constructor() {
@@ -108,37 +61,7 @@ class DeviceOperations extends GenericOperations {
 
 
 // TODO: this is an awful quick hack - this should be better scoped.
-function OperationsHeader({ displayToggle, toggleSearchBar }) {
-    return (
-        <div className="col s5 pull-right pt10">
-            <div
-                role="button"
-                tabIndex="0"
-                className="searchBtn"
-                title="Show search bar"
-                onClick={toggleSearchBar}
-                onKeyPress={toggleSearchBar}
-            >
-                <i className="fa fa-search" />
-            </div>
-            {displayToggle}
-            <DojotBtnLink
-                linkto="/device/new"
-                label="New Device"
-                alt="Create a new device"
-                icon="fa fa-plus"
-                className="w130px"
-            />
-        </div>
-    );
-}
-
-OperationsHeader.propTypes = {
-    displayToggle: PropTypes.func.isRequired,
-    toggleSearchBar: PropTypes.func.isRequired,
-};
-
-let deviceListSocket = null;
+let device_list_socket = null;
 
 class Devices extends Component {
     constructor(props) {
@@ -148,124 +71,108 @@ class Devices extends Component {
         this.toggleSearchBar = this.toggleSearchBar.bind(this);
         this.toggleDisplay = this.toggleDisplay.bind(this);
         this.setDisplay = this.setDisplay.bind(this);
-        this.devOpex = new DeviceOperations();
+        this.dev_opex = new DeviceOperations();
     }
 
     componentDidMount() {
-        this.devOpex._fetch();
+    // DeviceActions.fetchDevices.defer();
+        // console.log('devices: componentDidMount');
+        this.dev_opex._fetch();
         // Realtime
         const socketio = require('socket.io-client');
 
         const target = `${window.location.protocol}//${window.location.host}`;
-        const tokenUrl = `${target}/stream/socketio`;
+        const token_url = `${target}/stream/socketio`;
+
+        function _getWsToken() {
+            util._runFetch(token_url)
+                .then((reply) => {
+                    init(reply.token);
+                })
+                .catch((error) => {
+                    // console.log('Failed!', error);
+                });
+        }
 
         function init(token) {
-            deviceListSocket = socketio(target, { query: `token=${token}`, transports: ['polling'] });
+            device_list_socket = socketio(target, { query: `token=${token}`, transports: ['polling'] });
 
-            deviceListSocket.on('all', (data) => {
+            device_list_socket.on('all', (data) => {
+                // console.log('received socket information:', data);
                 MeasureActions.appendMeasures(data);
                 DeviceActions.updateStatus(data);
             });
 
-            deviceListSocket.on('error', () => {
-                if (deviceListSocket !== null) deviceListSocket.close();
+            device_list_socket.on('error', (data) => {
+                // console.log('socket error', data);
+                if (device_list_socket !== null) device_list_socket.close();
+                // getWsToken();
             });
-        }
-
-        function _getWsToken() {
-            util._runFetch(tokenUrl)
-                .then((reply) => {
-                    init(reply.token);
-                })
-                .catch(() => {
-                    // console.log('Failed!', error);
-                });
         }
 
         _getWsToken();
     }
 
     componentWillUnmount() {
-        if (deviceListSocket !== null) deviceListSocket.close();
+        if (device_list_socket !== null) device_list_socket.close();
+    }
+
+
+    toggleSearchBar() {
+        this.setState({ showFilter: !this.state.showFilter });
     }
 
     setDisplay(state) {
         this.setState({ displayList: state });
     }
 
-    toggleSearchBar() {
-        let { showFilter } = this.state;
-        showFilter = !showFilter;
-        this.setState({ showFilter });
-    }
-
     toggleDisplay() {
-        let { displayList } = this.state;
-        displayList = !displayList;
-        if (!displayList) this.devOpex.setFilterToMap();
-        else this.devOpex.setDefaultFilter();
+        const newDisplay = !this.state.displayList;
+        // console.log(' toggleDisplay', newDisplay);
+        // reload devices for maps
+        if (!newDisplay) this.dev_opex.setFilterToMap();
+        else this.dev_opex.setDefaultFilter();
 
-        this.devOpex._fetch(() => {
-            this.setState({ displayList });
+        this.dev_opex._fetch(() => {
+            this.setState({ displayList: newDisplay });
         });
     }
 
 
     render() {
-        const { displayList, showFilter } = this.state;
-        const { location } = this.props;
+        // console.log('Loading Devices Component.');
 
-        const detail = 'detail' in location.query
-            ? location.query.detail
+        const detail = 'detail' in this.props.location.query
+            ? this.props.location.query.detail
             : null;
         const displayToggle = (
             <ToggleWidget
-                toggleState={displayList}
+                toggleState={this.state.displayList}
                 toggle={this.toggleDisplay}
                 setState={this.setDisplay}
             />
         );
 
-        const showPagination = displayList;
+        const show_pagination = this.state.displayList;
         return (
             <div className="full-device-area">
                 <AltContainer store={DeviceStore}>
                     <NewPageHeader title="Devices" subtitle="" icon="device">
-                        <FilterLabel ops={this.devOpex} text="Filtering Devices" />
-                        <Pagination show_pagination={showPagination} ops={this.devOpex} />
-                        <OperationsHeader
-                            displayToggle={displayToggle}
-                            toggleSearchBar={this.toggleSearchBar}
-                        />
+                        <FilterLabel ops={this.dev_opex} text="Filtering Devices" />
+                        <Pagination show_pagination={show_pagination} ops={this.dev_opex} />
+                        <OperationsHeader displayToggle={displayToggle} toggleSearchBar={this.toggleSearchBar.bind(this)} />
                     </NewPageHeader>
-                    {displayList
-                        ? (
-                            <DeviceCardList
-                                deviceid={detail}
-                                toggle={displayToggle}
-                                devOpex={this.devOpex}
-                                showFilter={showFilter}
-                            />
-                        )
-                        : (
-                            <MapWrapper
-                                deviceid={detail}
-                                toggle={displayToggle}
-                                showFilter={showFilter}
-                                devOpex={this.devOpex}
-                            />
-                        )
-                    }
+                    {this.state.displayList ? <DeviceCardList deviceid={detail} toggle={displayToggle} dev_opex={this.dev_opex} showFilter={this.state.showFilter} /> : <MapWrapper deviceid={detail} toggle={displayToggle} showFilter={this.state.showFilter} dev_opex={this.dev_opex} />}
                 </AltContainer>
             </div>
         );
     }
 }
 
-Devices.propTypes = {
-    location: PropTypes.objectOf(PropTypes.shape({
-        query: PropTypes.object,
-    })).isRequired,
-};
+// Devices.propTypes = {
+//     location: PropTypes.objectOf(PropTypes.shape({
+//         query: PropTypes.object,
+//     })).isRequired,
+// };
 
 export default Devices;

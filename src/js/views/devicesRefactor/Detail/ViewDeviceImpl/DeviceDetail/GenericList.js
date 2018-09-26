@@ -1,19 +1,11 @@
-/* eslint guard-for-in: 0 */
-/* eslint no-restricted-syntax: ["error", "WithStatement"] */
-/* eslint no-param-reassign: ["error", { "props": false }] */
-/* eslint class-methods-use-this: 0 */
-/* eslint jsx-a11y/label-has-associated-control: 0 */
+/* eslint-disable */
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 
 class GenericList extends Component {
     constructor(props) {
         super(props);
-        this.state = {
-            openStaticMap: true,
-            visibleStaticMap: false,
-            truncate: false,
-        };
+        this.state = { openStaticMap: true, visible_static_map: false, truncate: false };
 
         this.openMap = this.openMap.bind(this);
         this.verifyIsGeo = this.verifyIsGeo.bind(this);
@@ -21,22 +13,20 @@ class GenericList extends Component {
     }
 
     componentWillMount() {
-        const { attrs } = this.props;
-        this.limitSizeField(attrs);
+        this.limitSizeField(this.props.attrs);
     }
 
-    openMap() {
-        const { device, openStaticMap: openStaticMapProps } = this.props;
-        const { openStaticMap, visibleStaticMap } = this.state;
+    openMap(visible) {
+        const device = this.props.device;
         for (const k in device.attrs) {
             for (const j in device.attrs[k]) {
                 if (device.attrs[k][j].value_type === 'geo:point') {
                     if (device.attrs[k][j].static_value !== '') {
                         this.setState({
-                            openStaticMap: !openStaticMap,
-                            visibleStaticMap: !visibleStaticMap,
+                            openStaticMap: !this.state.openStaticMap,
+                            visible_static_map: !this.state.visible_static_map,
                         });
-                        openStaticMapProps(openStaticMap);
+                        this.props.openStaticMap(this.state.openStaticMap);
                     }
                 }
             }
@@ -54,7 +44,7 @@ class GenericList extends Component {
     }
 
     limitSizeField(attrs) {
-        attrs.forEach((attr) => {
+        attrs.map((attr) => {
             if (attr.static_value !== undefined) {
                 if (attr.type === 'meta') {
                     // values of configurations
@@ -75,24 +65,17 @@ class GenericList extends Component {
     }
 
     render() {
-        const {
-            attrs,
-            img,
-            boxTitle,
-            device,
-        } = this.props;
-        const { truncate, visibleStaticMap } = this.state;
-        this.verifyIsGeo(attrs);
+        this.verifyIsGeo(this.props.attrs);
         return (
             <div className="row stt-attributes">
                 <div className="col s12 header">
                     <div className="icon">
-                        <img src={img} alt="img" />
+                        <img src={this.props.img} />
                     </div>
-                    <label>{boxTitle}</label>
+                    <label>{this.props.box_title}</label>
                 </div>
                 <div className="col s12 body">
-                    {boxTitle === 'Configurations' ? (
+                    {this.props.box_title == 'Configurations' ? (
                         <div key="id" className="line display-flex">
                             <div className="col s12 pr0">
                                 <div className="col s5">
@@ -100,41 +83,31 @@ class GenericList extends Component {
                                     <div className="value-label">Name</div>
                                 </div>
                                 <div className="col s7 p0 text-right">
-                                    <div className="value-value pr0">{device.id}</div>
+                                    <div className="value-value pr0">{this.props.device.id}</div>
                                     <div className="value-label pr0">STRING</div>
                                 </div>
                             </div>
                         </div>
                     ) : ('')}
-                    {attrs.map(attr => (
+                    {this.props.attrs.map(attr => (
                         attr.isGeo ? (
-                            <div
-                                role="button"
-                                tabIndex="0"
-                                key={attr.label}
-                                className="line col s12 pl30"
-                                id="static-geo-attribute"
-                                onClick={this.openMap}
-                                onKeyPress={this.openMap}
-                            >
+                            <div key={attr.label} className="line col s12 pl30" id="static-geo-attribute" onClick={this.openMap}>
                                 <div className="display-flex-column flex-1">
-                                    <div
-                                        className={truncate
-                                            ? 'name-value display-flex flex-1 space-between truncate'
-                                            : 'name-value display-flex flex-1 space-between'
-                                        }
+                                    <div className={this.state.truncate ? 
+                                        'name-value display-flex flex-1 space-between truncate' : 
+                                        'name-value display-flex flex-1 space-between'} 
                                         title={attr.label}
                                     >
                                         {attr.label}
                                         <div className="star">
-                                            <i className={`fa ${visibleStaticMap ? 'fa-star' : 'fa-star-o'}`} />
+                                            <i className={`fa ${this.state.visible_static_map ? 'fa-star' : 'fa-star-o'}`} />
                                         </div>
                                     </div>
                                     <div className="display-flex-no-wrap space-between">
-                                        <div className={truncate ? 'value-value truncate' : 'value-value'} title={attr.static_value}>
-                                            {attr.static_value.length > 25
-                                                ? `${attr.static_value.substr(1, 22)}...`
-                                                : attr.static_value
+                                        <div className={this.state.truncate ? 'value-value truncate' : 'value-value'} title={attr.static_value}>
+                                            {attr.static_value.length > 25 ?
+                                                attr.static_value.substr(1, 22) + '...' :
+                                                attr.static_value
                                             }
                                         </div>
                                         <div className="value-label" title={attr.value_type}>{attr.value_type}</div>
@@ -144,12 +117,12 @@ class GenericList extends Component {
                         ) : (
                             <div key={attr.label} className="line col s12 pl30">
                                 <div className="display-flex-column flex-1">
-                                    <div className={truncate ? 'name-value  truncate' : 'name-value '} title={attr.label}>{attr.label}</div>
+                                    <div className={this.state.truncate ? 'name-value  truncate' : 'name-value '} title={attr.label}>{attr.label}</div>
                                     <div className="display-flex-no-wrap space-between">
-                                        <div className={truncate ? 'value-value  truncate' : 'value-value '} title={attr.static_value}>
-                                            {attr.static_value.length > 25
-                                                ? `${attr.static_value.substr(1, 22)}...`
-                                                : attr.static_value
+                                        <div className={this.state.truncate ? 'value-value  truncate' : 'value-value '} title={attr.static_value}>
+                                            {attr.static_value.length > 25 ?
+                                                attr.static_value.substr(1, 22) + '...' :
+                                                attr.static_value
                                             }
                                         </div>
                                         <div className="value-label" title={attr.value_type}>{attr.value_type}</div>
@@ -164,19 +137,19 @@ class GenericList extends Component {
     }
 }
 
-GenericList.defaultProps = {
-    attrs: [],
-    openStaticMap: () => null,
-};
+// GenericList.defaultProps = {
+//     attrs: [],
+//     openStaticMap: () => null,
+// };
 
-GenericList.propTypes = {
-    attrs: PropTypes.arrayOf,
-    img: PropTypes.string.isRequired,
-    boxTitle: PropTypes.string.isRequired,
-    device: PropTypes.objectOf(PropTypes.shape({
-        id: PropTypes.string,
-    })).isRequired,
-    openStaticMap: PropTypes.func,
-};
+// GenericList.propTypes = {
+//     attrs: PropTypes.arrayOf,
+//     img: PropTypes.string.isRequired,
+//     boxTitle: PropTypes.string.isRequired,
+//     device: PropTypes.objectOf(PropTypes.shape({
+//         id: PropTypes.string,
+//     })).isRequired,
+//     openStaticMap: PropTypes.func,
+// };
 
 export default GenericList;

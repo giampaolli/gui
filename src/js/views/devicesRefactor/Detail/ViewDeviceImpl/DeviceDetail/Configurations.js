@@ -1,25 +1,31 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+/* eslint-disable */
+import React, { Component } from 'react';
+// import PropTypes from 'prop-types';
 import GenericList from './GenericList';
 
-const Configurations = ({ attrs, device }) => (
-    <GenericList
-        img="images/gear-dark.png"
-        attrs={attrs}
-        box_title="Configurations"
-        device={device}
-    />
-);
+class Configurations extends Component {
+    constructor(props) {
+        super(props);
+    }
 
-Configurations.defaultProps = {
-    attrs: [],
-};
+    render() {
+        return (
+            <div>
+                <GenericList img="images/gear-dark.png" attrs={this.props.attrs} box_title="Configurations" device={this.props.device} />
+            </div>
+        );
+    }
+}
 
-Configurations.propTypes = {
-    attrs: PropTypes.array,
-    device: PropTypes.objectOf(PropTypes.shape({
-        id: PropTypes.string,
-    })).isRequired,
-};
+// Configurations.defaultProps = {
+//     attrs: [],
+// };
+
+// Configurations.propTypes = {
+//     attrs: PropTypes.array,
+//     device: PropTypes.objectOf(PropTypes.shape({
+//         id: PropTypes.string,
+//     })).isRequired,
+// };
 
 export default Configurations;

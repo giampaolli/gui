@@ -1,5 +1,6 @@
+/* eslint-disable */ 
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import { hashHistory } from 'react-router';
 import AltContainer from 'alt-container';
@@ -15,10 +16,13 @@ import DeviceForm from './DeviceForm';
 
 
 class NewDevice extends Component {
+    constructor(props) {
+        super(props);
+    }
+
     componentDidMount() {
-        const { params } = this.props;
         FormActions.set(null);
-        const edit = params.device;
+        const edit = this.props.params.device;
         if (edit) {
             FormActions.fetch(edit);
         }
@@ -26,34 +30,34 @@ class NewDevice extends Component {
     }
 
     render() {
-        const { params } = this.props;
+        let title = 'New device';
         let edition = false;
-        if (params.device) edition = true;
+        if (this.props.params.device) edition = true;
 
-        let ops = (device) => {
-            DeviceActions.addDevice(device, () => {
+        let ops = function (device) {
+            DeviceActions.addDevice(device, (device) => {
                 toaster.success('Device created');
                 hashHistory.push('/device/list');
             });
         };
-
-        if (params.device) {
-            ops = (device) => {
+        if (this.props.params.device) {
+            title = 'Edit device';
+            ops = function (device) {
                 DeviceActions.triggerUpdate(device, () => {
                     toaster.success('Device updated');
                     hashHistory.push('/device/list');
                 });
             };
         }
-
+        // console.log('this.props,', this.props);
         return (
             <div className="full-width full-height">
                 <ReactCSSTransitionGroup transitionName="first" transitionAppear transitionAppearTimeout={500} transitionEntattrTypeerTimeout={500} transitionLeaveTimeout={500}>
                     <NewPageHeader title="Devices" subtitle="device manager" icon="device">
                         <div className="box-sh">
-                            {params.device ? (
+                            {this.props.params.device ? (
                                 <DojotBtnRedCircle
-                                    to={`/device/id/${params.device}/detail`}
+                                    to={`/device/id/${this.props.params.device}/detail`}
                                     icon="fa fa-arrow-left"
                                     tooltip="Return to device details"
                                 />
@@ -67,22 +71,17 @@ class NewDevice extends Component {
                         </div>
                     </NewPageHeader>
                     <AltContainer stores={{ device: DeviceFormStore, templates: TemplateStore }}>
-                        <DeviceForm
-                            deviceid={params.device}
-                            edition={edition}
-                            operator={ops}
-                        />
+                        <DeviceForm deviceid={this.props.params.device} edition={edition} operator={ops} />
                     </AltContainer>
                 </ReactCSSTransitionGroup>
             </div>
         );
     }
 }
-
-NewDevice.propTypes = {
-    params: PropTypes.objectOf(PropTypes.shape({
-        device: PropTypes.array,
-    })).isRequired,
-};
+// NewDevice.propTypes = {
+//     params: PropTypes.objectOf(PropTypes.shape({
+//         device: PropTypes.array,
+//     })).isRequired,
+// };
 
 export default NewDevice;

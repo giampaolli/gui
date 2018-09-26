@@ -1,8 +1,6 @@
-/* eslint guard-for-in: 0 */
-/* eslint no-restricted-syntax: ["error", "WithStatement"] */
-/* eslint no-param-reassign: ["error", { "props": false }] */
+/* eslint-disable */
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 import Configurations from './Configurations';
 import StaticAttributes from './StaticAttributes';
 import DyAttributeArea from './DyAttributeArea';
@@ -10,32 +8,26 @@ import DyAttributeArea from './DyAttributeArea';
 class DeviceDetail extends Component {
     constructor(props) {
         super(props);
-        this.state = {
-            openStaticMap: false,
-        };
+        this.state = { openStaticMap: false };
 
-        this.handleOpenStaticMap = this.handleOpenStaticMap.bind(this);
+        this.openStaticMap = this.openStaticMap.bind(this);
     }
 
-    handleOpenStaticMap(state) {
+    openStaticMap(state) {
         this.setState({ openStaticMap: state });
     }
 
     render() {
-        const { device } = this.props;
-        const { openStaticMap } = this.state;
-        let attrList = [];
+        let attr_list = [];
         let dal = [];
         let actuators = [];
-        let configList = [];
+        let config_list = [];
+        for (const index in this.props.device.attrs) {
+            let tmp = this.props.device.attrs[index];
+            if (!Array.isArray(tmp))
+                tmp = this.props.device.attrs;
 
-        for (const index in device.attrs) {
-            let tmp = device.attrs[index];
-            if (!Array.isArray(tmp)) {
-                tmp = device.attrs;
-            }
-
-            attrList = attrList.concat(tmp.filter(i => String(i.type) === 'static'));
+            attr_list = attr_list.concat(tmp.filter(i => String(i.type) === 'static'));
             dal = dal.concat(tmp.filter((i) => {
                 i.visible = false;
                 return String(i.type) === 'dynamic';
@@ -44,41 +36,30 @@ class DeviceDetail extends Component {
                 i.visible = false;
                 return String(i.type) === 'actuator';
             }));
-            configList = configList.concat(tmp.filter(i => String(i.type) === 'meta'));
+            config_list = config_list.concat(tmp.filter(i => String(i.type) === 'meta'));
         }
 
-        for (const index in configList) {
-            if (configList[index].label === 'protocol') {
-                configList[index].static_value = configList[index].static_value.toUpperCase();
+        for (const index in config_list) {
+            if (config_list[index].label === 'protocol') {
+                config_list[index].static_value = config_list[index].static_value.toUpperCase();
             }
         }
 
+        // console.log('attrs: ', dal);
         return (
             <div className="row detail-body">
                 <div className="first-col">
-                    <Configurations
-                        device={device}
-                        attrs={configList}
-                    />
-                    <StaticAttributes
-                        device={device}
-                        attrs={attrList}
-                        openStaticMap={this.handleOpenStaticMap}
-                    />
+                    <Configurations device={this.props.device} attrs={config_list} />
+                    <StaticAttributes device={this.props.device} attrs={attr_list} openStaticMap={this.openStaticMap} />
                 </div>
-                <DyAttributeArea
-                    device={device}
-                    actuators={actuators}
-                    attrs={dal}
-                    openStaticMap={openStaticMap}
-                />
+                <DyAttributeArea device={this.props.device} actuators={actuators} attrs={dal} openStaticMap={this.state.openStaticMap} />
             </div>
         );
     }
 }
 
-DeviceDetail.propTypes = {
-    device: PropTypes.object.isRequired,
-};
+// DeviceDetail.propTypes = {
+//     device: PropTypes.object.isRequired,
+// };
 
 export default DeviceDetail;

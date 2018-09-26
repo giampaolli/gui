@@ -1,8 +1,6 @@
-/* eslint guard-for-in: 0 */
-/* eslint no-restricted-syntax: ["error", "WithStatement"] */
-/* eslint no-param-reassign: ["error"] */
+/* eslint-disable */
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 import Sidebar from '../../../../components/DeviceRightSidebar';
 import { Filter } from '../../../utils/Manipulation';
 import { SmallPositionRenderer } from '../../../utils/Maps';
@@ -17,12 +15,13 @@ class DeviceMap extends Component {
 
         this.state = {
             isDisplayList: true,
+            filter: '',
             displayMap: {},
             selectedDevice: {},
+            listOfDevices: [],
             mapquest: false,
         };
 
-        this.list = [];
         this.validDevices = [];
         this.handleViewChange = this.handleViewChange.bind(this);
         this.applyFiltering = this.applyFiltering.bind(this);
@@ -39,9 +38,106 @@ class DeviceMap extends Component {
         this.toggleVisibility = this.toggleVisibility.bind(this);
     }
 
+    countVisibleDevices() {
+        let count = 0;
+        for (const k in this.validDevices) {
+            if (this.state.displayMap[this.validDevices[k].id]) count++;
+        }
+        return count;
+    }
+
     componentDidMount() {
         this.showAll();
     }
+
+    handleViewChange() {
+        this.setState({ isDisplayList: !this.state.isDisplayList });
+    }
+
+    selectedDevice(device) {
+        const selectedDevice = this.state.selectedDevice;
+        if (selectedDevice.hasOwnProperty(device)) {
+            selectedDevice[device] = !selectedDevice[device];
+        } else {
+            selectedDevice[device] = true;
+        }
+        this.setState({ selectedDevice });
+    }
+
+    toggleVisibility(device_id) {
+        // console.log('toggleVisibility', device_id);
+        const displayMap = this.state.displayMap;
+        displayMap[device_id] = !displayMap[device_id];
+        this.setState({ displayMap });
+    }
+
+    hideAll() {
+        const displayMap = this.state.displayMap;
+        for (const k in displayMap) {
+            displayMap[k] = false;
+        }
+        this.setState({ displayMap });
+    }
+
+    showAll() {
+        const displayMap = {};
+        for (const k in this.props.devices) {
+            displayMap[this.props.devices[k].id] = true;
+        }
+        this.setState({ displayMap });
+    }
+
+    applyFiltering(devices) {
+        const list = [];
+        for (const k in devices) {
+            // if (this.state.displayMap[devices[k].id]) {
+            list.push(devices[k]);
+            // }
+        }
+
+        // if (this.state.displayMap)
+        // {
+        //     let displayMap = {};
+        //     for (let k in devices) {
+        //         displayMap[devices[k].id] = true;
+        //     }
+        //     this.setState({ displayMap: displayMap });
+        // }
+        return list;
+    }
+
+    toggleTracking(device_id) {
+        if (!this.props.Measure.tracking.hasOwnProperty(device_id)) {
+          for (const k in this.props.devices[device_id].attrs) {
+            for (const j in this.props.devices[device_id].attrs[k]) {
+              if (this.props.devices[device_id].attrs[k][j].value_type === "geo:point") {
+                TrackingActions.fetch(device_id, this.props.devices[device_id].attrs[k][j].label);
+                this.props.devices[device_id].tracking = true;
+              }
+            }
+          }
+        } else {
+          TrackingActions.dismiss(device_id);
+          this.props.devices[device_id].tracking = false;
+        }
+    }
+
+    showSelected(device) {
+        if (this.state.selectedDevice.hasOwnProperty(device)) {
+            return this.state.selectedDevice[device];
+        }
+        return false;
+    }
+
+    // toggleDisplay(device) {
+    //     let displayMap = this.state.displayMap;
+    //     if (displayMap.hasOwnProperty(device)) {
+    //         displayMap[device] = !displayMap[device];
+    //     } else {
+    //         displayMap[device] = false;
+    //     }
+    //     this.setState({displayMap: displayMap});
+    // }
 
     getDevicesWithPosition(devices) {
         function parserPosition(position) {
@@ -55,8 +151,7 @@ class DeviceMap extends Component {
                 for (const i in devices[k].attrs[j]) {
                     if (devices[k].attrs[j][i].type === 'static') {
                         if (devices[k].attrs[j][i].value_type === 'geo:point') {
-                            devices[k].position = parserPosition(devices[k].attrs[j][i]
-                                .static_value);
+                            devices[k].position = parserPosition(devices[k].attrs[j][i].static_value);
                         }
                     }
                 }
@@ -70,129 +165,8 @@ class DeviceMap extends Component {
         return validDevices;
     }
 
-    countVisibleDevices() {
-        const { displayMap } = this.state;
-        let count = 0;
-        for (const k in this.validDevices) {
-            if (displayMap[this.validDevices[k].id]) count += 1;
-        }
-        return count;
-    }
-
-
-    handleViewChange() {
-        const { isDisplayList } = this.state;
-        this.setState({ isDisplayList: !isDisplayList });
-    }
-
-    selectedDevice(device) {
-        const { selectedDevice } = this.state;
-        if (Object.prototype.hasOwnProperty.call(selectedDevice, device)) {
-            selectedDevice[device] = !selectedDevice[device];
-        } else {
-            selectedDevice[device] = true;
-        }
-        this.setState({ selectedDevice });
-    }
-
-    toggleVisibility(deviceId) {
-        const { displayMap } = this.state;
-        // console.log('toggleVisibility', deviceId);
-        displayMap[deviceId] = !displayMap[deviceId];
-        this.setState({ displayMap });
-    }
-
-    hideAll() {
-        const { displayMap } = this.state;
-        for (const k in displayMap) {
-            displayMap[k] = false;
-        }
-        this.setState({ displayMap });
-    }
-
-    showAll() {
-        const { devices } = this.props;
-        const displayMap = {};
-        for (const k in devices) {
-            displayMap[devices[k].id] = true;
-        }
-        this.setState({ displayMap });
-    }
-
-    applyFiltering(devices) {
-        this.list = [];
-        for (const k in devices) {
-            this.list.push(devices[k]);
-        }
-        return this.list;
-    }
-
-    toggleTracking(deviceId) {
-        const { Measure, devices } = this.props;
-        if (!Object.prototype.hasOwnProperty.call(Measure.tracking, deviceId)) {
-            for (const k in devices[deviceId].attrs) {
-                for (const j in devices[deviceId].attrs[k]) {
-                    if (devices[deviceId].attrs[k][j].value_type === 'geo:point') {
-                        TrackingActions.fetch(deviceId, devices[deviceId].attrs[k][j].label);
-                        devices[deviceId].tracking = true;
-                    }
-                }
-            }
-        } else {
-            TrackingActions.dismiss(deviceId);
-            devices[deviceId].tracking = false;
-        }
-    }
-
-    showSelected(device) {
-        const { selectedDevice } = this.state;
-        if (Object.prototype.hasOwnProperty.call(selectedDevice, device)) {
-            return selectedDevice[device];
-        }
-        return false;
-    }
-
-    renderComponent(pointList) {
-        const {
-            devices,
-            Measure,
-            showFilter,
-            Config,
-        } = this.props;
-
-        if (pointList === undefined || pointList.length > 2000) {
-            return (
-                <SmallPositionRenderer
-                    showLayersIcons
-                    devices={pointList}
-                    toggleTracking={this.toggleTracking}
-                    allowContextMenu
-                    listPositions={Measure.tracking}
-                    showPolyline
-                    config={Config}
-                />
-            );
-        }
-
-        return (
-            <DeviceMapBig
-                devices={devices}
-                showFilter={showFilter}
-                config={Config}
-            />
-        );
-    }
-
     render() {
-        const {
-            devices,
-            Measure,
-            devOpex,
-            showFilter,
-        } = this.props;
-
-        const { displayMap, mapquest } = this.state;
-        this.validDevices = this.getDevicesWithPosition(devices);
+        this.validDevices = this.getDevicesWithPosition(this.props.devices);
         const filteredList = this.validDevices;
         // let filteredList = this.applyFiltering(this.validDevices);
         const nVisibleDevices = this.countVisibleDevices();
@@ -201,80 +175,77 @@ class DeviceMap extends Component {
         let pointList = [];
         for (const k in filteredList) {
             const device = filteredList[k];
-            device.hasPosition = Object.prototype.hasOwnProperty.call(device, 'position');
-            if (Object.prototype.hasOwnProperty.call(Measure.tracking, device.id)
-                    && displayMap[device.id]) {
-                pointList = pointList.concat(Measure.tracking[device.id].map(
-                    (e, idx) => {
-                        const updated = e;
-                        updated.id = device.id;
-                        updated.unique_key = `${device.id}_${idx}`;
-                        updated.label = device.label;
-                        updated.timestamp = e.timestamp;
-                        return updated;
-                    },
+            device.hasPosition = device.hasOwnProperty('position');
+            if (this.props.Measure.tracking.hasOwnProperty(device.id) && this.state.displayMap[device.id]) {
+                pointList = pointList.concat(this.props.Measure.tracking[device.id].map(
+                  (e, k) => {
+                    const updated = e;
+                    updated.id = device.id;
+                    updated.unique_key = `${device.id}_${k}`;
+                    updated.label = device.label;
+                    updated.timestamp = e.timestamp;
+                    return updated;
+                  }
                 ));
             }
-            if (displayMap[device.id]) pointList.push(device);
+            if (this.state.displayMap[device.id]) pointList.push(device);
         }
 
-        this.metaData = { alias: 'device' };
-        devOpex.setFilterToMap();
+        this.metaData = { alias: "device" };
+        this.props.dev_opex.setFilterToMap();
 
-        // console.log('this.pointList', this.pointList);
-        // console.log('displayDevicesCount', displayDevicesCount);
-        if (mapquest) {
-            return <Loading />;
+        // let loading = <div className="row full-height relative">
+        //     <div className="row full-height relative">
+        //         <div className="background-info valign-wrapper full-height">
+        //             <i className="fa fa-circle-o-notch fa-spin fa-fw horizontal-center" />
+        //         </div>
+        //     </div>
+        // </div>;
+        
+        
+        console.log("this.pointList", this.pointList);
+        console.log("displayDevicesCount", displayDevicesCount);
+    
+        if (this.state.mapquest) {
+          return <Loading />;
         }
 
-        return (
-            <div className="fix-map-bug">
-                <div className="flex-wrapper">
-                    <div className="map-filter-box">
-                        <Filter
-                            showPainel={showFilter}
-                            metaData={this.metaData}
-                            ops={devOpex}
-                            fields={DevFilterFields}
-                        />
-                    </div>
-                    <div className="deviceMapCanvas deviceMapCanvas-map col m12 s12 relative">
-                        {this.renderComponent(pointList)}
-                        <Sidebar
-                            deviceInfo={displayDevicesCount}
-                            toggleVisibility={this.toggleVisibility}
-                            devices={this.validDevices}
-                            hideAll={this.hideAll}
-                            showAll={this.showAll}
-                            displayMap={displayMap}
-                        />
-                    </div>
-                </div>
+        return <div className="fix-map-bug">
+            <div className="flex-wrapper">
+              <div className="map-filter-box">
+                <Filter showPainel={this.props.showFilter} metaData={this.metaData} ops={this.props.dev_opex} fields={DevFilterFields} />
+              </div>
+
+              <div className="deviceMapCanvas deviceMapCanvas-map col m12 s12 relative">
+                {/* <Script url="https://www.mapquestapi.com/sdk/leaflet/v2.s/mq-map.js?key=zvpeonXbjGkoRqVMtyQYCGVn4JQG8rd9" onLoad={this.mqLoaded} /> */}
+                {this.pointList == undefined || this.pointList.length > 2000 ? <SmallPositionRenderer showLayersIcons={true} devices={pointList} toggleTracking={this.toggleTracking} allowContextMenu={true} listPositions={this.props.Measure.tracking} showPolyline={true} config={this.props.Config} /> : <DeviceMapBig devices={this.props.devices} showFilter={this.props.showFilter} dev_opex={this.props.dev_opex} config={this.props.Config} />}
+                <Sidebar deviceInfo={displayDevicesCount} toggleVisibility={this.toggleVisibility} devices={this.validDevices} hideAll={this.hideAll} showAll={this.showAll} displayMap={this.state.displayMap} />
+              </div>
             </div>
-        );
+          </div>;
     }
 }
 
-DeviceMap.defautProps = {
-    showFilter: false,
-};
+// DeviceMap.defautProps = {
+//     showFilter: false,
+// };
 
-DeviceMap.propTypes = {
-    devices: PropTypes.array.isRequired,
-    Measure: PropTypes.object.isRequired,
-    devOpex: PropTypes.objectOf(PropTypes.shape({
-        whenUpdatePagination: PropTypes.func.isRequired,
-        setDefaultFilter: PropTypes.func.isRequired,
-        setFilterToMap: PropTypes.func.isRequired,
-        whenUpdateFilter: PropTypes.func.isRequired,
-        _fetch: PropTypes.func.isRequired,
-        setDefaultPageNumber: PropTypes.func.isRequired,
-        setDefaultPaginationParams: PropTypes.func.isRequired,
-        hasFilter: PropTypes.func.isRequired,
-        getCurrentQuery: PropTypes.func.isRequired,
-    })).isRequired,
-    showFilter: PropTypes.bool.isRequired,
-    Config: PropTypes.object.isRequired,
-};
+// DeviceMap.propTypes = {
+//     devices: PropTypes.array.isRequired,
+//     Measure: PropTypes.object.isRequired,
+//     devOpex: PropTypes.objectOf(PropTypes.shape({
+//         whenUpdatePagination: PropTypes.func.isRequired,
+//         setDefaultFilter: PropTypes.func.isRequired,
+//         setFilterToMap: PropTypes.func.isRequired,
+//         whenUpdateFilter: PropTypes.func.isRequired,
+//         _fetch: PropTypes.func.isRequired,
+//         setDefaultPageNumber: PropTypes.func.isRequired,
+//         setDefaultPaginationParams: PropTypes.func.isRequired,
+//         hasFilter: PropTypes.func.isRequired,
+//         getCurrentQuery: PropTypes.func.isRequired,
+//     })).isRequired,
+//     showFilter: PropTypes.bool.isRequired,
+//     Config: PropTypes.object.isRequired,
+// };
 
 export default DeviceMap;
