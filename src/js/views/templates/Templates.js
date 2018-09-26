@@ -21,6 +21,8 @@ import {
 import util from '../../comms/util/util';
 
 import { NewPageHeader } from '../../containers/full/PageHeader';
+import { DojotBtnLink } from '../../components/DojotButton';
+
 
 import { RemoveModal } from '../../components/Modal';
 
@@ -731,7 +733,6 @@ class ListItem extends Component {
 
     updateTemplate(e) {
         if (e != undefined) e.preventDefault();
-
         // Verify template name
         let ret = util.isNameValid(this.state.template.label);
         if (!ret.result && !this.state.isConfiguration) {
@@ -750,6 +751,12 @@ class ListItem extends Component {
         for (const k in this.state.template.attrs) {
             // console.log('attrs: ', this.state.template.attrs);
             // Validation of config attributes
+            let ret = util.isNameValid(this.state.template.attrs[k].label);
+            if (!ret.result && !this.state.isConfiguration) {
+                toaster.error(ret.error);
+                return;
+            }
+
             if (this.state.template.attrs[k].type == 'meta') {
                 if (this.state.template.attrs[k].label == '') {
                     toaster.error("You can't leave configuration attribute type empty");
@@ -1358,10 +1365,15 @@ function OperationsHeader(props) {
             <div className="searchBtn" title="Show search bar" onClick={props.toggleSearchBar}>
                 <i className="fa fa-search" />
             </div>
-            <div onClick={props.addTemplate} className="new-btn-flat red" title="Create a new template">
-                New Template
-                <i className="fa fa-plus" />
-            </div>
+            <DojotBtnLink
+                responsive="true"
+                onClick={props.addTemplate} 
+                label="New Template"
+                alt="Create a new template"
+                icon="fa fa-plus"
+                className="w130px"
+            />
+
         </div>
     );
 }

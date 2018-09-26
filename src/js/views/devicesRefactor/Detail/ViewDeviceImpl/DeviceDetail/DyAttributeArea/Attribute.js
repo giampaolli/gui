@@ -2,6 +2,7 @@
 import React, { Component } from 'react';
 // import PropTypes from 'prop-types';
 import AttrHistory from './AttrHistory';
+import util from '../../../../../../comms/util/util';
 
 class Attribute extends Component {
     constructor(props) {
@@ -22,11 +23,7 @@ class Attribute extends Component {
 
     render() {
     // check the current window, if less then 1024px, blocks compressed state
-        const width = window.innerWidth
-      || document.documentElement.clientWidth
-      || document.body.clientWidth;
-        let opened = this.state.opened;
-        if (width < 1168) opened = true;
+        let opened = util.checkWidthToStateOpen(this.state.opened);
 
         return (
             <div className={`attributeBox ${opened ? 'expanded' : 'compressed'}`}>
