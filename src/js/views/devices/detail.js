@@ -2,6 +2,7 @@
 import React, { Component } from 'react';
 import { hashHistory } from 'react-router';
 import AltContainer from 'alt-container';
+import Slide from 'react-reveal/Slide';
 import { NewPageHeader } from '../../containers/full/PageHeader';
 import MeasureStore from '../../stores/MeasureStore';
 import MeasureActions from '../../actions/MeasureActions';
@@ -100,6 +101,36 @@ class StaticAttributes extends Component {
     }
 }
 
+/* MOCK test metadata */ 
+const meta = {
+    "created": "2018-09-18T14:19:25.714123+00:00", 
+    "id": 7, 
+    "label": "RFID-Reader", 
+    "metadata": [
+        {
+            "created": "2018-09-18T14:19:25.714778+00:00", 
+            "id": 8, 
+            "label": "connection", 
+            "static_value": "usb0", 
+            "type": "mapping", 
+            "updated": null, 
+            "value_type": "string"
+        }, 
+        {
+            "created": "2018-09-18T14:19:25.715358+00:00", 
+            "id": 9, 
+            "label": "type", 
+            "static_value": "rfid", 
+            "type": "mapping", 
+            "updated": null, 
+            "value_type": "string"
+        }
+    ], 
+    "template_id": "4", 
+    "type": "dynamic", 
+    "value_type": "string",
+}
+
 class GenericList extends Component {
     constructor(props) {
         super(props);
@@ -174,48 +205,52 @@ class GenericList extends Component {
                 </div>
                 <div className="col s12 body">
                     {this.props.box_title == 'Configurations' ? (
-                        <div key="id" className="line display-flex">
-                            <div className="col s12 pr0">
-                                <div className="col s5">
-                                    <div className="name-value">device id</div>
-                                    <div className="value-label">Name</div>
+                        <div key="id" className="line pl10 display-flex no-margin">
+                            <div className="display-flex flex-1">
+                                <div className="display-flex-column flex-1">
+                                    <div className="name-value p10 pl10">device id</div>
+                                    <div className="value-label p10 pl10">Name</div>
                                 </div>
-                                <div className="col s7 p0 text-right">
-                                    <div className="value-value pr0">{this.props.device.id}</div>
-                                    <div className="value-label pr0">STRING</div>
+                                <div className="display-flex-column flex-1">
+                                    <div className="value-value flex-end p10">{this.props.device.id}</div>
+                                    <div className="value-label flex-end p10">STRING</div>
                                 </div>
                             </div>
                         </div>
                     ) : ('')}
-                    {this.props.attrs.map(attr => (
-                        attr.isGeo ? (
-                            <div key={attr.label} className="line col s12 pl30" id="static-geo-attribute" onClick={this.openMap}>
+                    {this.props.attrs.map(attr => {
+                        const value = attr.static_value !== undefined ? attr.static_value : '';
+                        return ( attr.isGeo ? (
+                            <div key={attr.label} className="line pl10 no-margin" id="static-geo-attribute">
                                 <div className="display-flex-column flex-1">
                                     <div className={this.state.truncate ? 
-                                        'name-value display-flex flex-1 space-between truncate' : 
-                                        'name-value display-flex flex-1 space-between'} 
+                                        'name-value display-flex flex-1 space-between p10 truncate' : 
+                                        'name-value display-flex flex-1 space-between p10'} 
                                         title={attr.label}
+                                        onClick={this.openMap}
                                     >
                                         {attr.label}
                                         <div className="star">
                                             <i className={`fa ${this.state.visible_static_map ? 'fa-star' : 'fa-star-o'}`} />
                                         </div>
                                     </div>
-                                    <div className="display-flex-no-wrap space-between">
-                                        <div className={this.state.truncate ? 'value-value truncate' : 'value-value'} title={attr.static_value}>
-                                            {attr.static_value.length > 25 ?
-                                                attr.static_value.substr(1, 22) + '...' :
-                                                attr.static_value
+                                    <div className="display-flex-no-wrap space-between" onClick={this.openMap}>
+                                        <div className={this.state.truncate ? 'value-value p10 truncate' : 'value-value p10'} title={value}>
+                                            {value.length > 25 ?
+                                                value.substr(1, 22) + '...' :
+                                                value
                                             }
                                         </div>
-                                        <div className="value-label" title={attr.value_type}>{attr.value_type}</div>
+                                        <div className="value-label p10" title={attr.value_type}>{attr.value_type}</div>
                                     </div>
+                                    {Object.prototype.hasOwnProperty.call(attr, "metadata") ? <Metadata attr={attr} /> : null }
+                                    {/* {Object.prototype.hasOwnProperty.call(meta, "metadata") ? <Metadata attr={meta} /> : null } */}
                                 </div>
                             </div>
                         ) : (
-                            <div key={attr.label} className="line col s12 pl30">
+                            <div key={attr.label} className="line pl10 no-margin">
                                 <div className="display-flex-column flex-1">
-                                    <div className={this.state.truncate ? 'name-value  truncate' : 'name-value '} title={attr.label}>{attr.label}</div>
+                                    <div className={this.state.truncate ? 'name-value p10 truncate' : 'name-value p10'} title={attr.label}>{attr.label}</div>
                                     <div className="display-flex-no-wrap space-between">
                                         <div className={this.state.truncate ? 'value-value  truncate' : 'value-value '} title={attr.static_value}>
                                             {(attr.static_value !== undefined && attr.static_value.length > 25) ?
@@ -223,12 +258,15 @@ class GenericList extends Component {
                                                 attr.static_value
                                             }
                                         </div>
-                                        <div className="value-label" title={attr.value_type}>{attr.value_type}</div>
+                                        <div className="value-label p10" title={attr.value_type}>{attr.value_type}</div>
                                     </div>
+                                    {Object.prototype.hasOwnProperty.call(attr, "metadata") ? <Metadata attr={attr} /> : null }
+                                    {/* {Object.prototype.hasOwnProperty.call(meta, "metadata") ? <Metadata attr={meta} /> : null } */}
                                 </div>
                             </div>
                         )
-                    ))}
+                    )
+                })}
                 </div>
             </div>
         );
@@ -320,11 +358,14 @@ class ActuatorsArea extends Component {
                 </div>
                 <div className="col s12 body">
                     {this.props.actuators.map(actuator => (
-                        <div key={actuator.label} className="line">
-                            <div className="col offset-s2 s8">
-                                <div className="label truncate" title={actuator.label}>{actuator.label}</div>
-                                {/* <div className="value-label">{attr.value_type}</div> */}
+                        <div className="line-wrapper">
+                                <div key={actuator.label} className="line" >
+                                <div className="line-values">
+                                    <div className='label truncate' title={actuator.label}>{actuator.label}</div>
+                                </div>
                             </div>
+                            {Object.prototype.hasOwnProperty.call(actuator, "metadata") ? <Metadata attr={actuator} /> : null }
+                            {/* {Object.prototype.hasOwnProperty.call(meta, "metadata") ? <Metadata attr={meta} /> : null } */}
                         </div>
                     ))}
                 </div>
@@ -336,7 +377,10 @@ class ActuatorsArea extends Component {
 class DynamicAttributeList extends Component {
     constructor(props) {
         super(props);
-        this.state = { truncate: false };
+        this.state = { 
+            truncate: false,
+            showMetada: false,
+        };
         this.clickAttr = this.clickAttr.bind(this);
         this.limitSizeField = this.limitSizeField.bind(this);
     }
@@ -379,22 +423,24 @@ class DynamicAttributeList extends Component {
                         {/* <i className="fa fa-filter" /> */}
                     </div>
                     <label className="col s10">Dynamic attributes</label>
-                    {/* <div className="col s2 search-icon">
-            <i className="fa fa-search" />
-          </div> */}
                 </div>
                 <div className="col s12 body">
+                
                     {this.props.attrs.map(attr => (
-                        <div key={attr.label} className="line" onClick={this.clickAttr.bind(this, attr)}>
-                            <div className="col offset-s2 s8">
-                                <div className={this.state.truncate ? 'label truncate' : 'label'} title={attr.label}>{attr.label}</div>
-                                <div className="value-label">{attr.value_type}</div>
-                            </div>
-                            <div className="col s2">
-                                <div className="star">
-                                    <i className={`fa ${attr.visible ? 'fa-star' : 'fa-star-o'}`} />
+                        <div className="line-wrapper">
+                            <div key={attr.label} className="line" >
+                                <div className="line-values" onClick={this.clickAttr.bind(this, attr)}>
+                                    <div className={this.state.truncate ? 'label truncate' : 'label'} title={attr.label}>{attr.label}</div>
+                                    <div className="value-label">{attr.value_type}</div>
+                                </div>
+                                <div className="line-actions">
+                                    <div className="star" onClick={this.clickAttr.bind(this, attr)}>
+                                        <i className={`fa ${attr.visible ? 'fa-star' : 'fa-star-o'}`} />
+                                    </div>
                                 </div>
                             </div>
+                            {Object.prototype.hasOwnProperty.call(attr, "metadata") ? <Metadata attr={attr} /> : null }
+                            {/* {Object.prototype.hasOwnProperty.call(meta, "metadata") ? <Metadata attr={meta} /> : null } */}
                         </div>
                     ))}
                 </div>
@@ -402,6 +448,42 @@ class DynamicAttributeList extends Component {
         );
     }
 }
+
+class Metadata extends Component {
+
+    constructor(props){
+        super(props);
+        this.state = {
+            open: false,
+        }
+
+        this.showMetadata = this.showMetadata.bind(this);
+    }
+
+    showMetadata(){
+        this.setState({open: !this.state.open})
+    }
+
+    render(){
+        const { attr } = this.props;
+        const { open } = this.state;
+        return (
+            <div className="metadata-wrapper">
+                { attr.metadata.map(item => (
+                    open && (
+                        <div className="line-metadata">
+                            <div className="label">{item.label}</div>
+                            <div className="value">{item.static_value}</div>
+                        </div>
+                    )
+                ))}
+                <div className="button" onClick={this.showMetadata}>
+                    <i className={`fa ${open? 'fa-angle-up' : 'fa-angle-down'}`} />
+                </div>
+            </div>
+        )
+    }
+} 
 
 
 class DeviceUserActions extends Component {

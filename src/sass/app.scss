@@ -298,6 +298,23 @@ body {
   padding-left: 30px !important;
 }
 
+.pl20px, .pl20
+{
+  padding-left: 20px !important;
+}
+
+.pl10px, .pl10
+{
+  padding-left: 10px !important;
+}
+
+.p5{
+  padding: 0 5px;
+}
+
+.p10{
+  padding: 0 10px;
+}
 
 .pull-right
 {
@@ -341,6 +358,11 @@ body {
     margin-top: 5px;
 }
 
+.ml0, .ml0px
+{
+    margin-left: 0 !important;
+}
+
 .pr
 {
   position:relative;
@@ -367,6 +389,11 @@ body {
 
 .flex-1{
   flex: 1;
+}
+
+.flex-end{
+  display: flex;
+  justify-content: flex-end;
 }
 
 
