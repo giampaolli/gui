@@ -492,6 +492,23 @@ class DeviceDetail extends Component {
         this.state = { openStaticMap: false };
 
         this.openStaticMap = this.openStaticMap.bind(this);
+        this.removeAttr = this.removeAttr.bind(this);
+    }
+
+    removeAttr(arr) {
+        let newArray = arr.reduce((array, currentValue) => {
+            for (let index = 0; index < array.length; index++) {
+                if(array[index].id === currentValue.id){
+                    return array;
+                }
+            }
+
+            array.push(currentValue);
+            return array;
+
+        }, []);
+
+        return newArray
     }
 
     openStaticMap(state) {
@@ -530,10 +547,10 @@ class DeviceDetail extends Component {
         return (
             <div className="row detail-body">
                 <div className="first-col">
-                    <Configurations device={this.props.device} attrs={config_list} />
-                    <StaticAttributes device={this.props.device} attrs={attr_list} openStaticMap={this.openStaticMap} />
+                    <Configurations device={this.props.device} attrs={this.removeAttr(config_list)} />
+                    <StaticAttributes device={this.props.device} attrs={this.removeAttr(attr_list)} openStaticMap={this.openStaticMap} />
                 </div>
-                <DyAttributeArea device={this.props.device} actuators={actuators} attrs={dal} openStaticMap={this.state.openStaticMap} />
+                <DyAttributeArea device={this.props.device} actuators={actuators} attrs={this.removeAttr(dal)} openStaticMap={this.state.openStaticMap} />
             </div>
         );
     }
